@@ -164,29 +164,69 @@ export function drawTopPanel(ctx, state) {
         ctx.fillStyle = '#888'; // Grey background for finished state
         ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         drawOverlayMessage(ctx,
-            `The pointer moved X% of the target area during the trial and took ${state.trialStats.moves} moves.\n\npress space to start another trial.`
-            // TODO: Calculate actual percentage moved
+            `The pointer moved ${state.trialStats.percentageMoved.toFixed(1)}% of the target area during the trial and took ${state.trialStats.moves} moves.\n\npress space to start another trial.`
         );
     }
 }
 
 /**
- * Draws an overlay message on the canvas.
+ * Draws a bordered, word-wrapped, and centered overlay message on the canvas.
  * @param {CanvasRenderingContext2D} ctx - The 2D rendering context of the canvas.
  * @param {string} message - The message to display.
  */
 export function drawOverlayMessage(ctx, message) {
+    // 1. Define Text Area and Border
+    const padding = 50;
+    const textArea = {
+        x: padding,
+        y: padding,
+        w: ctx.canvas.width - 2 * padding,
+        h: ctx.canvas.height - 2 * padding,
+    };
+    ctx.strokeStyle = COLORS.text;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(textArea.x, textArea.y, textArea.w, textArea.h);
+
+    // 2. Set Font and Text Properties
     ctx.fillStyle = COLORS.text;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.font = '30px Arial';
 
-    const lines = message.split('\n');
-    const lineHeight = 35; // Adjust as needed
-    let y = ctx.canvas.height / 2 - (lines.length - 1) * lineHeight / 2;
+    // 3. Manual Text Wrapping Logic
+    const maxWidth = textArea.w - 20; // Internal padding for the text
+    const paragraphs = message.split('\n');
+    const lines = [];
+    const lineHeight = 35;
+
+    paragraphs.forEach(paragraph => {
+        if (paragraph === '') {
+            lines.push(''); // Respect empty lines from \n\n
+        } else {
+            const words = paragraph.split(' ');
+            let currentLine = words[0] || '';
+
+            for (let i = 1; i < words.length; i++) {
+                const word = words[i];
+                const width = ctx.measureText(currentLine + ' ' + word).width;
+                if (width < maxWidth) {
+                    currentLine += ' ' + word;
+                } else {
+                    lines.push(currentLine);
+                    currentLine = word;
+                }
+            }
+            lines.push(currentLine);
+        }
+    });
+
+    // 4. Vertical Centering and Drawing
+    const totalTextHeight = lines.length * lineHeight;
+    let startY = textArea.y + (textArea.h / 2) - (totalTextHeight / 2) + (lineHeight / 2);
 
     lines.forEach(line => {
-        ctx.fillText(line, ctx.canvas.width / 2, y);
-        y += lineHeight;
+        // Use canvas center for x because textAlign is 'center'
+        ctx.fillText(line, ctx.canvas.width / 2, startY);
+        startY += lineHeight;
     });
 }

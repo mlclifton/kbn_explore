@@ -18,7 +18,9 @@ import {
     getPointerPosition,
     isPointInRect,
     zoomToCell,
-    calculateGridCells
+    calculateGridCells,
+    calculateDistance, // Import new helper
+    calculateDiagonal, // Import new helper
 } from './geometry.js';
 
 // --- State Management ---
@@ -33,9 +35,10 @@ const state = {
     targetBox: null, // {x, y, w, h} - target box in image coordinates
     keyMap: {}, // Flattened KEY_MAPPING for easy lookup
     highlightedCellIndex: -1, // Index of the cell currently highlighted by key press
+    initialPointerPosition: null, // Store {x, y} of pointer at trial start
     trialStats: {
         moves: 0,
-        initialDistance: 0, // Not yet implemented
+        percentageMoved: 0, // New property for percentage moved
     },
     topCanvas: null,
     topCtx: null,
@@ -127,6 +130,10 @@ function handleKeyDown(event) {
             const pointer = getPointerPosition(state.currentView);
             if (isPointInRect(pointer, state.targetBox)) {
                 state.gameState = 'FINISHED';
+                const endPointer = getPointerPosition(state.currentView);
+                const distance = calculateDistance(state.initialPointerPosition, endPointer);
+                const fullDiagonal = calculateDiagonal(state.fullDimensions);
+                state.trialStats.percentageMoved = (distance / fullDiagonal) * 100;
             }
         }
     }
@@ -136,6 +143,7 @@ function handleKeyDown(event) {
 function resetTrial() {
     state.gameState = 'IDLE'; // Will be set to RUNNING by handleKeyDown
     state.trialStats.moves = 0;
+    state.trialStats.percentageMoved = 0; // Reset percentage for new trial
     state.highlightedCellIndex = -1;
 
     // Initial view is the full image
@@ -145,6 +153,7 @@ function resetTrial() {
         w: state.fullDimensions.w,
         h: state.fullDimensions.h
     };
+    state.initialPointerPosition = getPointerPosition(state.currentView); // Store initial pointer position
 
     // Generate a new random target box
     state.targetBox = generateRandomTargetBox(state.fullDimensions);

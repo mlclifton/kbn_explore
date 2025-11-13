@@ -83,6 +83,27 @@ export function zoomToCell(currentView, cellIndex) {
 }
 
 /**
+ * Calculates the Euclidean distance between two points.
+ * @param {object} p1 - The first point {x, y}.
+ * @param {object} p2 - The second point {x, y}.
+ * @returns {number} The distance between the two points.
+ */
+export function calculateDistance(p1, p2) {
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+/**
+ * Calculates the diagonal length of a rectangle.
+ * @param {object} dimensions - The rectangle's dimensions {w, h}.
+ * @returns {number} The diagonal length.
+ */
+export function calculateDiagonal(dimensions) {
+    return Math.sqrt(dimensions.w * dimensions.w + dimensions.h * dimensions.h);
+}
+
+/**
  * Generates a random target box within the full image dimensions.
  * @param {object} fullDimensions - The full dimensions of the image {w, h}.
  * @param {number} minSizeRatio - Minimum size of the target box as a ratio of full dimension.
