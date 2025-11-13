@@ -6,9 +6,9 @@ export const GRID_DIMENSIONS = { cols: 8, rows: 3 };
 // This is based on the QWERTY layout, trying to match the spirit of the spec's images
 // but ensuring a consistent 8x3 grid.
 export const KEY_MAPPING = [
-    ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i'], // Row 0
-    ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k'], // Row 1
-    ['z', 'x', 'c', 'v', 'b', 'n', 'm', ','], // Row 2 (using ',' for the 8th key)
+    ['q', 'w', 'e', 'r', 'u', 'i', 'o', 'p'],
+    ['a', 's', 'd', 'f', 'j', 'k', 'l', ';'],
+    ['z', 'x', 'c', 'v', 'n', 'm', ',', '.'],
 ];
 
 export const COLORS = {
