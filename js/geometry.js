@@ -69,13 +69,17 @@ export function zoomToCell(currentView, cellIndex) {
         return currentView; // Return current view if index is invalid
     }
 
-    // The new view is simply the selected cell's bounds
-    return {
-        x: selectedCell.x,
-        y: selectedCell.y,
-        w: selectedCell.w,
-        h: selectedCell.h
-    };
+    const originalAspectRatio = currentView.w / currentView.h;
+
+    const newH = selectedCell.h;
+    const newW = newH * originalAspectRatio;
+
+    const cellCenterX = selectedCell.x + selectedCell.w / 2;
+    
+    const newX = cellCenterX - newW / 2;
+    const newY = selectedCell.y;
+
+    return { x: newX, y: newY, w: newW, h: newH };
 }
 
 /**
