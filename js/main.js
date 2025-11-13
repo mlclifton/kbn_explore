@@ -35,7 +35,7 @@ const state = {
     targetBox: null, // {x, y, w, h} - target box in image coordinates
     keyMap: {}, // Flattened KEY_MAPPING for easy lookup
     highlightedCellIndex: -1, // Index of the cell currently highlighted by key press
-    initialPointerPosition: null, // Store {x, y} of pointer at trial start
+    viewHistory: [], // A stack of previous currentView objects to enable 'undo'
     trialStats: {
         moves: 0,
         percentageMoved: 0, // New property for percentage moved
@@ -112,28 +112,42 @@ function handleKeyDown(event) {
             state.gameState = 'RUNNING';
         }
     } else if (state.gameState === 'RUNNING') {
-        const cellIndex = state.keyMap.indexOf(key);
-        if (cellIndex !== -1) {
-            event.preventDefault(); // Prevent default key action
-            state.trialStats.moves++;
-            state.highlightedCellIndex = cellIndex; // Highlight the selected cell
+        event.preventDefault(); // Prevent default browser actions for keys during trial
 
-            // Simulate a brief flash for UI feedback
-            setTimeout(() => {
-                state.highlightedCellIndex = -1; // Remove highlight
-            }, 150);
+        if (key === 'escape') {
+            // UNDO LOGIC
+            if (state.viewHistory.length > 1) {
+                state.viewHistory.pop(); // Remove the current view
+                state.currentView = state.viewHistory[state.viewHistory.length - 1]; // Revert to previous
+                state.trialStats.moves--;
+            }
+        } else {
+            // ZOOM LOGIC
+            const cellIndex = state.keyMap.indexOf(key);
+            if (cellIndex !== -1) {
+                state.trialStats.moves++;
+                state.highlightedCellIndex = cellIndex; // Highlight the selected cell
 
-            // Zoom into the selected cell
-            state.currentView = zoomToCell(state.currentView, cellIndex);
+                // Simulate a brief flash for UI feedback
+                setTimeout(() => {
+                    state.highlightedCellIndex = -1; // Remove highlight
+                }, 150);
 
-            // Check for win condition
-            const pointer = getPointerPosition(state.currentView);
-            if (isPointInRect(pointer, state.targetBox)) {
-                state.gameState = 'FINISHED';
-                const endPointer = getPointerPosition(state.currentView);
-                const distance = calculateDistance(state.initialPointerPosition, endPointer);
-                const fullDiagonal = calculateDiagonal(state.fullDimensions);
-                state.trialStats.percentageMoved = (distance / fullDiagonal) * 100;
+                // Zoom into the selected cell
+                const newView = zoomToCell(state.currentView, cellIndex);
+                state.viewHistory.push(newView); // Add the new view to history
+                state.currentView = newView;
+
+                // Check for win condition
+                const pointer = getPointerPosition(state.currentView);
+                if (isPointInRect(pointer, state.targetBox)) {
+                    state.gameState = 'FINISHED';
+                    const initialPointerPosition = getPointerPosition(state.viewHistory[0]);
+                    const endPointer = getPointerPosition(state.currentView);
+                    const distance = calculateDistance(initialPointerPosition, endPointer);
+                    const fullDiagonal = calculateDiagonal(state.fullDimensions);
+                    state.trialStats.percentageMoved = (distance / fullDiagonal) * 100;
+                }
             }
         }
     }
@@ -153,7 +167,7 @@ function resetTrial() {
         w: state.fullDimensions.w,
         h: state.fullDimensions.h
     };
-    state.initialPointerPosition = getPointerPosition(state.currentView); // Store initial pointer position
+    state.viewHistory = [state.currentView]; // Initialize history with the starting view
 
     // Generate a new random target box
     state.targetBox = generateRandomTargetBox(state.fullDimensions);
