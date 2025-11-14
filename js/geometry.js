@@ -1,6 +1,6 @@
 // js/geometry.js
 
-import { GRID_DIMENSIONS } from './config.js';
+import { GRID_DIMENSIONS, TARGET_SIZE_RATIO_MIN, TARGET_SIZE_RATIO_MAX } from './config.js';
 
 /**
  * Calculates the bounding rectangles for each cell in a grid overlaid on a given view.
@@ -111,7 +111,8 @@ export function calculateDiagonal(dimensions) {
  * @returns {object} The random target box {x, y, w, h}.
  */
 export function generateRandomTargetBox(fullDimensions) {
-    const sizeRatio = 0.02; // Fixed 2% size ratio, as requested
+    // Generate a random size ratio within the defined min/max
+    const sizeRatio = TARGET_SIZE_RATIO_MIN + (Math.random() * (TARGET_SIZE_RATIO_MAX - TARGET_SIZE_RATIO_MIN));
     const size = fullDimensions.w * sizeRatio;
 
     const targetW = size;

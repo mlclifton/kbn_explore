@@ -50,7 +50,7 @@ function runSingleTrial() {
 
         if (targetCellIndex === -1) {
             console.error("Error: Target center not found in any cell. Aborting trial.");
-            return -1;
+            return { moves: -1, initialDistance: -1, targetWidth: -1 };
         }
 
         processMove(state, targetCellIndex);
@@ -62,7 +62,11 @@ function runSingleTrial() {
         }
     }
 
-    return state.trialStats.moves;
+    return {
+        moves: state.trialStats.moves,
+        initialDistance: state.trialStats.initialDistance,
+        targetWidth: state.trialStats.targetWidth,
+    };
 }
 
 /**
@@ -71,8 +75,8 @@ function runSingleTrial() {
  * @returns {string} The formatted CSV data as a string.
  */
 function formatResultsToCSV(results) {
-    const header = 'trial_number,moves';
-    const rows = results.map(r => `${r.trial},${r.moves}`);
+    const header = 'trial_number,moves,initial_distance,target_width';
+    const rows = results.map(r => `${r.trial},${r.moves},${r.initialDistance},${r.targetWidth}`);
     return [header, ...rows].join('\n');
 }
 
@@ -83,9 +87,9 @@ function runAllTrials() {
     console.log(`Running ${NUM_TRIALS} automated trials...`);
     const results = [];
     for (let i = 0; i < NUM_TRIALS; i++) {
-        const moves = runSingleTrial();
-        if (moves !== -1) {
-            results.push({ trial: i + 1, moves });
+        const trialResult = runSingleTrial();
+        if (trialResult.moves !== -1) {
+            results.push({ trial: i + 1, ...trialResult });
         }
         // Simple progress indicator
         if ((i + 1) % 100 === 0) {

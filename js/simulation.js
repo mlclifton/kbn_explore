@@ -15,15 +15,25 @@ import {
  * @returns {object} A new state object.
  */
 export function createInitialState(fullDimensions) {
+    const targetBox = generateRandomTargetBox(fullDimensions);
+    const currentView = { x: 0, y: 0, w: fullDimensions.w, h: fullDimensions.h };
+
+    // Calculate initial distance for Fitts's Law analysis
+    const initialPointer = getPointerPosition(currentView);
+    const targetCenter = getPointerPosition(targetBox);
+    const initialDistance = calculateDistance(initialPointer, targetCenter);
+
     const initialState = {
         gameState: 'IDLE', // 'IDLE', 'RUNNING', 'FINISHED'
         fullDimensions: { ...fullDimensions },
-        currentView: { x: 0, y: 0, w: fullDimensions.w, h: fullDimensions.h },
-        targetBox: generateRandomTargetBox(fullDimensions),
+        currentView: currentView,
+        targetBox: targetBox,
         viewHistory: [],
         trialStats: {
             moves: 0,
             percentageMoved: 0,
+            initialDistance: initialDistance,
+            targetWidth: targetBox.w,
         },
     };
     initialState.viewHistory = [initialState.currentView];
