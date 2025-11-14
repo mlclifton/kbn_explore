@@ -12,11 +12,11 @@ This backlog outlines the specific tasks required to implement the automated tri
 
 ### 2. Automated Trial Runner Implementation
 
--   [ ] **Task:** Create the new file `js/automated_trials.js`.
--   [ ] **Task:** In `js/automated_trials.js`, import the necessary functions from `js/simulation.js`, `js/geometry.js`, and `js/config.js`.
--   [ ] **Task:** Implement the main "runner" function that loops for a specified number of trials (e.g., 1000).
--   [ ] **Task:** Create the "player" algorithm: a function that takes the current view and target box, and returns the index of the grid cell containing the target's center point.
--   [ ] **Task:** Implement the logic for a single trial that uses the player algorithm to zoom step-by-step until the trial is won.
+-   [x] **Task:** Create the new file `js/automated_trials.js`.
+-   [x] **Task:** In `js/automated_trials.js`, import the necessary functions from `js/simulation.js`, `js/geometry.js`, and `js/config.js`.
+-   [x] **Task:** Implement the main "runner" function that loops for a specified number of trials (e.g., 1000).
+-   [x] **Task:** Create the "player" algorithm: a function that takes the current view and target box, and returns the index of the grid cell containing the target's center point.
+-   [x] **Task:** Implement the logic for a single trial that uses the player algorithm to zoom step-by-step until the trial is won.
 
 ### 3. Data Handling
 
