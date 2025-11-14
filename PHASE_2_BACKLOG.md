@@ -20,9 +20,9 @@ This backlog outlines the specific tasks required to implement the automated tri
 
 ### 3. Data Handling
 
--   [ ] **Task:** Add logic to `js/automated_trials.js` to record the number of moves for each completed trial.
--   [ ] **Task:** Create a function to format the array of trial results into a CSV string (e.g., `trial_number,moves`).
--   [ ] **Task:** Print the final CSV formatted data to the console after all trials have been executed.
+-   [x] **Task:** Add logic to `js/automated_trials.js` to record the number of moves for each completed trial.
+-   [x] **Task:** Create a function to format the array of trial results into a CSV string (e.g., `trial_number,moves`).
+-   [x] **Task:** Print the final CSV formatted data to the console after all trials have been executed.
 
 ### 4. Project Integration
 

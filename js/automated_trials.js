@@ -66,6 +66,17 @@ function runSingleTrial() {
 }
 
 /**
+ * Formats the results of the trials into a CSV string.
+ * @param {Array<object>} results - An array of result objects {trial, moves}.
+ * @returns {string} The formatted CSV data as a string.
+ */
+function formatResultsToCSV(results) {
+    const header = 'trial_number,moves';
+    const rows = results.map(r => `${r.trial},${r.moves}`);
+    return [header, ...rows].join('\n');
+}
+
+/**
  * Main function to run all automated trials and collect the results.
  */
 function runAllTrials() {
@@ -82,8 +93,11 @@ function runAllTrials() {
         }
     }
     console.log("All trials completed.");
-    // The next epic will handle formatting and printing this data.
-    console.log("Sample results:", results.slice(0, 10));
+    
+    // Format and print the final results as CSV
+    const csvData = formatResultsToCSV(results);
+    console.log("\n--- CSV Results ---");
+    console.log(csvData);
 }
 
 // --- Start the automated trials ---
