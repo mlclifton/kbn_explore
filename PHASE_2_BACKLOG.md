@@ -26,5 +26,5 @@ This backlog outlines the specific tasks required to implement the automated tri
 
 ### 4. Project Integration
 
--   [ ] **Task:** Add a new script to `package.json` under the `scripts` section: `"trials": "node js/automated_trials.js"`.
--   [ ] **Task:** Add a `.mjs` extension to the `js/automated_trials.js` file and other files as needed to ensure that the program runs correctly.
+-   [x] **Task:** Add a new script to `package.json` under the `scripts` section: `"trials": "node js/automated_trials.js"`.
+-   [x] **Task:** Add a `.mjs` extension to the `js/automated_trials.js` file and other files as needed to ensure that the program runs correctly.
