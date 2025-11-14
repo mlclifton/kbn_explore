@@ -1,5 +1,7 @@
 // js/analysis.js
 
+import fs from 'fs';
+
 /**
  * Reads all data from stdin.
  * @returns {Promise<string>} A promise that resolves with the full input string.
@@ -72,69 +74,37 @@ async function analyze() {
         return;
     }
 
-    console.log(`Successfully parsed ${trials.length} trial records.`);
-    
-    displayDescriptiveStats(trials);
-    displayFrequencyDistribution(trials);
-    displayFittsLawAnalysis(trials);
+    const reportLines = [];
+    reportLines.push('# Analysis Report');
+    reportLines.push(`\nAnalysis based on **${trials.length}** trial records.`);
+
+    // Get analysis sections
+    reportLines.push(getDescriptiveStats(trials));
+    reportLines.push(getFrequencyDistribution(trials));
+    reportLines.push(getFittsLawAnalysis(trials));
+
+    // Write report to file
+    const reportContent = reportLines.join('\n');
+    fs.writeFileSync('analysis_report.md', reportContent);
+
+    console.log("✅ Analysis complete. Report saved to analysis_report.md");
 }
 
 // --- Analysis Functions ---
 
 /**
- * Calculates and displays an analysis based on Fitts's Law.
+ * Generates a markdown table for descriptive statistics.
  * @param {Array<object>} trials - The parsed trial data.
+ * @returns {string} The formatted markdown section.
  */
-function displayFittsLawAnalysis(trials) {
-    // First, calculate the Index of Difficulty (ID) for each trial.
-    // ID = log2(D/W + 1), where D is distance and W is width.
-    const trialsWithId = trials.map(t => {
-        const id = Math.log2(t.initial_distance / t.target_width + 1);
-        return { ...t, id };
-    });
-
-    // Group trials by rounded ID
-    const groupedById = {};
-    for (const trial of trialsWithId) {
-        const roundedId = Math.round(trial.id);
-        if (!groupedById[roundedId]) {
-            groupedById[roundedId] = [];
-        }
-        groupedById[roundedId].push(trial.moves);
-    }
-
-    // Calculate average moves for each ID group
-    const analysisResults = {};
-    for (const id in groupedById) {
-        const movesArray = groupedById[id];
-        const avgMoves = movesArray.reduce((sum, val) => sum + val, 0) / movesArray.length;
-        analysisResults[id] = {
-            'Trials': movesArray.length,
-            'Avg. Moves': avgMoves.toFixed(2),
-        };
-    }
-
-    console.log("\n--- Fitts's Law Analysis (ID vs. Avg. Moves) ---");
-    console.table(analysisResults);
-}
-
-
-/**
- * Calculates and displays key descriptive statistics for the trial data.
- * @param {Array<object>} trials - The parsed trial data.
- */
-function displayDescriptiveStats(trials) {
+function getDescriptiveStats(trials) {
     const moves = trials.map(t => t.moves).sort((a, b) => a - b);
     const n = moves.length;
 
-    // Mean
     const mean = moves.reduce((sum, val) => sum + val, 0) / n;
-
-    // Median
     const mid = Math.floor(n / 2);
     const median = n % 2 === 0 ? (moves[mid - 1] + moves[mid]) / 2 : moves[mid];
 
-    // Mode
     const modeMap = {};
     let maxFreq = 0;
     let modes = [];
@@ -148,26 +118,29 @@ function displayDescriptiveStats(trials) {
         }
     }
 
-    // Standard Deviation
     const stdDev = Math.sqrt(moves.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / n);
 
-    console.log("\n--- Descriptive Statistics (Moves) ---");
-    console.table({
-        'Total Trials': n,
-        'Mean': mean.toFixed(2),
-        'Median': median,
-        'Mode(s)': modes.join(', '),
-        'Min': moves[0],
-        'Max': moves[n - 1],
-        'Std. Deviation': stdDev.toFixed(2),
-    });
+    const lines = [
+        '\n## Descriptive Statistics (Moves)',
+        '| Metric         | Value    |',
+        '|----------------|----------|',
+        `| Total Trials   | ${n}        |`,
+        `| Mean           | ${mean.toFixed(2)}    |`,
+        `| Median         | ${median}        |`,
+        `| Mode(s)        | ${modes.join(', ')}    |`,
+        `| Min            | ${moves[0]}        |`,
+        `| Max            | ${moves[n - 1]}        |`,
+        `| Std. Deviation | ${stdDev.toFixed(2)}    |`,
+    ];
+    return lines.join('\n');
 }
 
 /**
- * Calculates and displays a frequency distribution histogram for the moves.
+ * Generates a markdown histogram for the frequency distribution.
  * @param {Array<object>} trials - The parsed trial data.
+ * @returns {string} The formatted markdown section.
  */
-function displayFrequencyDistribution(trials) {
+function getFrequencyDistribution(trials) {
     const moves = trials.map(t => t.moves);
     const freq = {};
     for (const move of moves) {
@@ -178,14 +151,55 @@ function displayFrequencyDistribution(trials) {
     const maxFreq = Math.max(...Object.values(freq));
     const maxBarLength = 40;
 
-    console.log("\n--- Frequency Distribution (Moves) ---");
+    const lines = ['\n## Frequency Distribution (Moves)', '```text'];
     for (const key of sortedKeys) {
         const count = freq[key];
         const barLength = Math.round((count / maxFreq) * maxBarLength);
         const bar = '█'.repeat(barLength);
-        console.log(`${String(key).padStart(2, ' ')} | ${bar} (${count})`);
+        lines.push(`${String(key).padStart(2, ' ')} | ${bar} (${count})`);
     }
+    lines.push('```');
+    return lines.join('\n');
+}
+
+
+/**
+ * Generates a markdown table for the Fitts's Law analysis.
+ * @param {Array<object>} trials - The parsed trial data.
+ * @returns {string} The formatted markdown section.
+ */
+function getFittsLawAnalysis(trials) {
+    const trialsWithId = trials.map(t => {
+        const id = Math.log2(t.initial_distance / t.target_width + 1);
+        return { ...t, id };
+    });
+
+    const groupedById = {};
+    for (const trial of trialsWithId) {
+        const roundedId = Math.round(trial.id);
+        if (!groupedById[roundedId]) {
+            groupedById[roundedId] = [];
+        }
+        groupedById[roundedId].push(trial.moves);
+    }
+
+    const lines = [
+        "\n## Fitts's Law Analysis (ID vs. Avg. Moves)",
+        '| Index of Difficulty (ID) | Trials | Avg. Moves |',
+        '|--------------------------|--------|------------|',
+    ];
+
+    const sortedIds = Object.keys(groupedById).map(Number).sort((a, b) => a - b);
+
+    for (const id of sortedIds) {
+        const movesArray = groupedById[id];
+        const avgMoves = movesArray.reduce((sum, val) => sum + val, 0) / movesArray.length;
+        lines.push(`| ${id}                        | ${movesArray.length}      | ${avgMoves.toFixed(2)}      |`);
+    }
+    
+    return lines.join('\n');
 }
 
 // --- Run the analysis ---
 analyze();
+
