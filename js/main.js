@@ -5,84 +5,75 @@ import {
     CANVAS_HEIGHT,
     TARGET_IMAGE_SRC,
     KEY_MAPPING,
-    GRID_DIMENSIONS,
-    COLORS
 } from './config.js';
 import {
     drawTopPanel,
-    drawBottomPanel,
-    drawOverlayMessage
+    drawBottomPanel
 } from './renderer.js';
 import {
-    generateRandomTargetBox,
-    getPointerPosition,
-    isPointInRect,
-    zoomToCell,
-    calculateGridCells,
-    calculateDistance, // Import new helper
-    calculateDiagonal, // Import new helper
-} from './geometry.js';
+    createInitialState,
+    resetTrial,
+    processMove,
+    processUndo
+} from './simulation.js';
 
 // --- State Management ---
-const state = {
-    gameState: 'IDLE', // 'IDLE', 'RUNNING', 'FINISHED'
+// The primary state is now managed by the simulation module.
+// This object holds state specific to the browser-based renderer.
+const renderState = {
     targetImage: new Image(),
-    fullDimensions: {
-        w: 0,
-        h: 0
-    }, // Actual dimensions of the loaded image
-    currentView: null, // {x, y, w, h} - current zoomed area in image coordinates
-    targetBox: null, // {x, y, w, h} - target box in image coordinates
     keyMap: {}, // Flattened KEY_MAPPING for easy lookup
     highlightedCellIndex: -1, // Index of the cell currently highlighted by key press
-    viewHistory: [], // A stack of previous currentView objects to enable 'undo'
-    trialStats: {
-        moves: 0,
-        percentageMoved: 0, // New property for percentage moved
-    },
     topCanvas: null,
     topCtx: null,
     bottomCanvas: null,
     bottomCtx: null,
 };
 
+// This will hold the core simulation state
+let simState = null;
+
+
 // --- Initialization ---
 function init() {
-    state.topCanvas = document.getElementById('top-panel-canvas');
-    state.bottomCanvas = document.getElementById('bottom-panel-canvas');
+    renderState.topCanvas = document.getElementById('top-panel-canvas');
+    renderState.bottomCanvas = document.getElementById('bottom-panel-canvas');
 
-    if (!state.topCanvas || !state.bottomCanvas) {
+    if (!renderState.topCanvas || !renderState.bottomCanvas) {
         console.error("Canvas elements not found!");
         return;
     }
 
-    state.topCtx = state.topCanvas.getContext('2d');
-    state.bottomCtx = state.bottomCanvas.getContext('2d');
+    renderState.topCtx = renderState.topCanvas.getContext('2d');
+    renderState.bottomCtx = renderState.bottomCanvas.getContext('2d');
 
     // Set canvas dimensions
-    state.topCanvas.width = CANVAS_WIDTH;
-    state.topCanvas.height = CANVAS_HEIGHT;
-    state.bottomCanvas.width = CANVAS_WIDTH;
-    state.bottomCanvas.height = CANVAS_HEIGHT;
+    renderState.topCanvas.width = CANVAS_WIDTH;
+    renderState.topCanvas.height = CANVAS_HEIGHT;
+    renderState.bottomCanvas.width = CANVAS_WIDTH;
+    renderState.bottomCanvas.height = CANVAS_HEIGHT;
 
     // Flatten KEY_MAPPING for quick lookup
-    state.keyMap = KEY_MAPPING.flat();
+    renderState.keyMap = KEY_MAPPING.flat();
 
     // Load the target image
-    state.targetImage.src = TARGET_IMAGE_SRC;
-    state.targetImage.onload = () => {
-        state.fullDimensions.w = state.targetImage.naturalWidth;
-        state.fullDimensions.h = state.targetImage.naturalHeight;
-        resetTrial(); // Initialize currentView and targetBox after image loads
+    renderState.targetImage.src = TARGET_IMAGE_SRC;
+    renderState.targetImage.onload = () => {
+        const fullDimensions = {
+            w: renderState.targetImage.naturalWidth,
+            h: renderState.targetImage.naturalHeight,
+        };
+        // Create the initial simulation state
+        simState = createInitialState(fullDimensions);
         requestAnimationFrame(gameLoop);
     };
-    state.targetImage.onerror = () => {
+    renderState.targetImage.onerror = () => {
         console.error("Failed to load image:", TARGET_IMAGE_SRC);
         // Draw error message on canvases
-        state.topCtx.fillStyle = 'red';
-        state.topCtx.fillText('Error loading image!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
-        state.bottomCtx.fillStyle = 'red';
-        state.bottomCtx.fillText('Error loading image!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+        renderState.topCtx.fillStyle = 'red';
+        renderState.topCtx.fillText('Error loading image!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+        renderState.bottomCtx.fillStyle = 'red';
+        renderState.bottomCtx.fillText('Error loading image!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
     };
 
     // Event Listeners
@@ -91,86 +82,52 @@ function init() {
 
 // --- Game Loop ---
 function gameLoop() {
-    drawBottomPanel(state.bottomCtx, state);
-    drawTopPanel(state.topCtx, state);
+    // Pass both the simulation state and render-specific state to the drawing functions
+    const combinedState = { ...simState, ...renderState };
+    drawBottomPanel(renderState.bottomCtx, combinedState);
+    drawTopPanel(renderState.topCtx, combinedState);
     requestAnimationFrame(gameLoop);
 }
 
 // --- Event Handlers ---
 function handleKeyDown(event) {
+    if (!simState) return; // Don't handle keys if simulation hasn't started
+
     const key = event.key.toLowerCase();
 
-    if (state.gameState === 'IDLE') {
+    if (simState.gameState === 'IDLE') {
         if (key === ' ') {
             event.preventDefault(); // Prevent page scroll
-            state.gameState = 'RUNNING';
+            simState.gameState = 'RUNNING';
         }
-    } else if (state.gameState === 'FINISHED') {
+    } else if (simState.gameState === 'FINISHED') {
         if (key === ' ') {
             event.preventDefault(); // Prevent page scroll
-            resetTrial();
-            state.gameState = 'RUNNING';
+            resetTrial(simState);
+            simState.gameState = 'RUNNING';
         }
-    } else if (state.gameState === 'RUNNING') {
+    } else if (simState.gameState === 'RUNNING') {
         event.preventDefault(); // Prevent default browser actions for keys during trial
 
         if (key === 'escape') {
             // UNDO LOGIC
-            if (state.viewHistory.length > 1) {
-                state.viewHistory.pop(); // Remove the current view
-                state.currentView = state.viewHistory[state.viewHistory.length - 1]; // Revert to previous
-                state.trialStats.moves--;
-            }
+            processUndo(simState);
         } else {
             // ZOOM LOGIC
-            const cellIndex = state.keyMap.indexOf(key);
+            const cellIndex = renderState.keyMap.indexOf(key);
             if (cellIndex !== -1) {
-                state.trialStats.moves++;
-                state.highlightedCellIndex = cellIndex; // Highlight the selected cell
+                renderState.highlightedCellIndex = cellIndex; // Highlight the selected cell
 
                 // Simulate a brief flash for UI feedback
                 setTimeout(() => {
-                    state.highlightedCellIndex = -1; // Remove highlight
+                    renderState.highlightedCellIndex = -1; // Remove highlight
                 }, 150);
 
-                // Zoom into the selected cell
-                const newView = zoomToCell(state.currentView, cellIndex);
-                state.viewHistory.push(newView); // Add the new view to history
-                state.currentView = newView;
-
-                // Check for win condition
-                const pointer = getPointerPosition(state.currentView);
-                if (isPointInRect(pointer, state.targetBox)) {
-                    state.gameState = 'FINISHED';
-                    const initialPointerPosition = getPointerPosition(state.viewHistory[0]);
-                    const endPointer = getPointerPosition(state.currentView);
-                    const distance = calculateDistance(initialPointerPosition, endPointer);
-                    const fullDiagonal = calculateDiagonal(state.fullDimensions);
-                    state.trialStats.percentageMoved = (distance / fullDiagonal) * 100;
-                }
+                // Process the move via the simulation module
+                processMove(simState, cellIndex);
             }
         }
     }
-}
-
-// --- Helper Functions ---
-function resetTrial() {
-    state.gameState = 'IDLE'; // Will be set to RUNNING by handleKeyDown
-    state.trialStats.moves = 0;
-    state.trialStats.percentageMoved = 0; // Reset percentage for new trial
-    state.highlightedCellIndex = -1;
-
-    // Initial view is the full image
-    state.currentView = {
-        x: 0,
-        y: 0,
-        w: state.fullDimensions.w,
-        h: state.fullDimensions.h
-    };
-    state.viewHistory = [state.currentView]; // Initialize history with the starting view
-
-    // Generate a new random target box
-    state.targetBox = generateRandomTargetBox(state.fullDimensions);
 }
 
 // --- Start the application ---
