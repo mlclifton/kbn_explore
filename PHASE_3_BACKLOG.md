@@ -33,5 +33,5 @@ This backlog outlines the specific tasks required to implement the data analysis
 
 ### 5. Streamline Execution
 
--   [ ] **Task:** Add the `analysis` script to `package.json` to create a processing pipeline.
--   [ ] **Task:** Add the `analysis:file` script to `package.json` to support an alternative file-based workflow.
+-   [x] **Task:** Add the `analysis` script to `package.json` to create a processing pipeline.
+-   [x] **Task:** Add the `analysis:file` script to `package.json` to support an alternative file-based workflow.

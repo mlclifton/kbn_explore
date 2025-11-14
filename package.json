@@ -8,7 +8,9 @@
   },
   "scripts": {
     "test": "node js/tests/simulation.test.js",
-    "trials": "node js/automated_trials.js"
+    "trials": "node js/automated_trials.js",
+    "analysis": "npm run trials | node js/analysis.js",
+    "analysis:file": "npm run trials > trials.csv && node js/analysis.js < trials.csv"
   },
   "keywords": [],
   "author": "",
