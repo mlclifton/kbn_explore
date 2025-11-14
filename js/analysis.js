@@ -27,13 +27,24 @@ function readStdin() {
  * @returns {Array<object>} An array of trial data objects.
  */
 function parseCSV(csvString) {
-    const lines = csvString.trim().split('\n');
-    if (lines.length < 2) {
+    const allLines = csvString.trim().split('\n');
+    
+    // Find the start of the actual CSV data
+    const csvStartIndex = allLines.findIndex(line => line.startsWith('trial_number,moves,initial_distance,target_width'));
+
+    if (csvStartIndex === -1) {
+        console.error("Error: Could not find CSV header in input.");
+        return [];
+    }
+
+    const csvLines = allLines.slice(csvStartIndex);
+
+    if (csvLines.length < 2) {
         return []; // Not enough data
     }
-    const header = lines.shift().split(',');
+    const header = csvLines.shift().split(',');
     
-    return lines.map(line => {
+    return csvLines.map(line => {
         const values = line.split(',');
         return header.reduce((obj, key, index) => {
             // Convert numeric values from string to float
