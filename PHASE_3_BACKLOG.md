@@ -12,9 +12,9 @@ This backlog outlines the specific tasks required to implement the data analysis
 
 ### 2. Create Analysis Script
 
--   [ ] **Task:** Create the new file `js/analysis.js`.
--   [ ] **Task:** Implement the necessary logic in `js/analysis.js` to read all data from `process.stdin`.
--   [ ] **Task:** Implement a CSV parsing function in `js/analysis.js` that converts the input string into an array of trial objects.
+-   [x] **Task:** Create the new file `js/analysis.js`.
+-   [x] **Task:** Implement the necessary logic in `js/analysis.js` to read all data from `process.stdin`.
+-   [x] **Task:** Implement a CSV parsing function in `js/analysis.js` that converts the input string into an array of trial objects.
 
 ### 3. Implement Statistical Analysis
 
