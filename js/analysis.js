@@ -62,7 +62,79 @@ async function analyze() {
     }
 
     console.log(`Successfully parsed ${trials.length} trial records.`);
-    // Analysis logic from subsequent epics will go here.
+    
+    displayDescriptiveStats(trials);
+    displayFrequencyDistribution(trials);
+}
+
+// --- Analysis Functions ---
+
+/**
+ * Calculates and displays key descriptive statistics for the trial data.
+ * @param {Array<object>} trials - The parsed trial data.
+ */
+function displayDescriptiveStats(trials) {
+    const moves = trials.map(t => t.moves).sort((a, b) => a - b);
+    const n = moves.length;
+
+    // Mean
+    const mean = moves.reduce((sum, val) => sum + val, 0) / n;
+
+    // Median
+    const mid = Math.floor(n / 2);
+    const median = n % 2 === 0 ? (moves[mid - 1] + moves[mid]) / 2 : moves[mid];
+
+    // Mode
+    const modeMap = {};
+    let maxFreq = 0;
+    let modes = [];
+    for (const move of moves) {
+        modeMap[move] = (modeMap[move] || 0) + 1;
+        if (modeMap[move] > maxFreq) {
+            maxFreq = modeMap[move];
+            modes = [move];
+        } else if (modeMap[move] === maxFreq) {
+            modes.push(move);
+        }
+    }
+
+    // Standard Deviation
+    const stdDev = Math.sqrt(moves.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / n);
+
+    console.log("\n--- Descriptive Statistics (Moves) ---");
+    console.table({
+        'Total Trials': n,
+        'Mean': mean.toFixed(2),
+        'Median': median,
+        'Mode(s)': modes.join(', '),
+        'Min': moves[0],
+        'Max': moves[n - 1],
+        'Std. Deviation': stdDev.toFixed(2),
+    });
+}
+
+/**
+ * Calculates and displays a frequency distribution histogram for the moves.
+ * @param {Array<object>} trials - The parsed trial data.
+ */
+function displayFrequencyDistribution(trials) {
+    const moves = trials.map(t => t.moves);
+    const freq = {};
+    for (const move of moves) {
+        freq[move] = (freq[move] || 0) + 1;
+    }
+
+    const sortedKeys = Object.keys(freq).map(Number).sort((a, b) => a - b);
+    const maxFreq = Math.max(...Object.values(freq));
+    const maxBarLength = 40;
+
+    console.log("\n--- Frequency Distribution (Moves) ---");
+    for (const key of sortedKeys) {
+        const count = freq[key];
+        const barLength = Math.round((count / maxFreq) * maxBarLength);
+        const bar = '█'.repeat(barLength);
+        console.log(`${String(key).padStart(2, ' ')} | ${bar} (${count})`);
+    }
 }
 
 // --- Run the analysis ---

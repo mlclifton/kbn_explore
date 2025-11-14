@@ -18,11 +18,11 @@ This backlog outlines the specific tasks required to implement the data analysis
 
 ### 3. Implement Statistical Analysis
 
--   [ ] **Task:** In `js/analysis.js`, create a function to calculate Mean, Median, Min, Max, and Standard Deviation for the `moves` data.
--   [ ] **Task:** In `js/analysis.js`, create a function to calculate the Mode for the `moves` data.
--   [ ] **Task:** In `js/analysis.js`, create a summary function to display all descriptive statistics in a formatted table.
--   [ ] **Task:** In `js/analysis.js`, create a function to calculate the frequency distribution of moves.
--   [ ] **Task:** In `js/analysis.js`, create a function to display the frequency distribution as a text-based histogram.
+-   [x] **Task:** In `js/analysis.js`, create a function to calculate Mean, Median, Min, Max, and Standard Deviation for the `moves` data.
+-   [x] **Task:** In `js/analysis.js`, create a function to calculate the Mode for the `moves` data.
+-   [x] **Task:** In `js/analysis.js`, create a summary function to display all descriptive statistics in a formatted table.
+-   [x] **Task:** In `js/analysis.js`, create a function to calculate the frequency distribution of moves.
+-   [x] **Task:** In `js/analysis.js`, create a function to display the frequency distribution as a text-based histogram.
 
 ### 4. Implement Fitts's Law Analysis
 
