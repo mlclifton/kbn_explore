@@ -65,9 +65,48 @@ async function analyze() {
     
     displayDescriptiveStats(trials);
     displayFrequencyDistribution(trials);
+    displayFittsLawAnalysis(trials);
 }
 
 // --- Analysis Functions ---
+
+/**
+ * Calculates and displays an analysis based on Fitts's Law.
+ * @param {Array<object>} trials - The parsed trial data.
+ */
+function displayFittsLawAnalysis(trials) {
+    // First, calculate the Index of Difficulty (ID) for each trial.
+    // ID = log2(D/W + 1), where D is distance and W is width.
+    const trialsWithId = trials.map(t => {
+        const id = Math.log2(t.initial_distance / t.target_width + 1);
+        return { ...t, id };
+    });
+
+    // Group trials by rounded ID
+    const groupedById = {};
+    for (const trial of trialsWithId) {
+        const roundedId = Math.round(trial.id);
+        if (!groupedById[roundedId]) {
+            groupedById[roundedId] = [];
+        }
+        groupedById[roundedId].push(trial.moves);
+    }
+
+    // Calculate average moves for each ID group
+    const analysisResults = {};
+    for (const id in groupedById) {
+        const movesArray = groupedById[id];
+        const avgMoves = movesArray.reduce((sum, val) => sum + val, 0) / movesArray.length;
+        analysisResults[id] = {
+            'Trials': movesArray.length,
+            'Avg. Moves': avgMoves.toFixed(2),
+        };
+    }
+
+    console.log("\n--- Fitts's Law Analysis (ID vs. Avg. Moves) ---");
+    console.table(analysisResults);
+}
+
 
 /**
  * Calculates and displays key descriptive statistics for the trial data.

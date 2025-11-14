@@ -26,10 +26,10 @@ This backlog outlines the specific tasks required to implement the data analysis
 
 ### 4. Implement Fitts's Law Analysis
 
--   [ ] **Task:** In `js/analysis.js`, create a function to calculate the Fitts's Law Index of Difficulty (ID) for each trial.
--   [ ] **Task:** In `js/analysis.js`, implement logic to group trials by their rounded ID.
--   [ ] **Task:** In `js/analysis.js`, calculate the average number of moves for each ID group.
--   [ ] **Task:** In `js/analysis.js`, create a function to display the Fitts's Law analysis results in a formatted table.
+-   [x] **Task:** In `js/analysis.js`, create a function to calculate the Fitts's Law Index of Difficulty (ID) for each trial.
+-   [x] **Task:** In `js/analysis.js`, implement logic to group trials by their rounded ID.
+-   [x] **Task:** In `js/analysis.js`, calculate the average number of moves for each ID group.
+-   [x] **Task:** In `js/analysis.js`, create a function to display the Fitts's Law analysis results in a formatted table.
 
 ### 5. Streamline Execution
 
