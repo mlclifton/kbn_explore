@@ -20,6 +20,11 @@ export const TARGET_SIZE_RATIO_MAX = 0.05; // 5% of screen width
 export const COLORS = {
     grid: 'rgba(255, 255, 255, 0.5)',
     targetBox: 'rgba(255, 165, 0, 1)',
+    viewOutline: 'rgba(255, 0, 0, 1)',
+    pointer: 'rgba(255, 165, 0, 0.8)',
+    text: 'white',
+    textHighlight: 'red',
+};
 
 
 export const CANVAS_WIDTH = 800; // Standard width for canvases
