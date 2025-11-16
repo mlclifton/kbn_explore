@@ -82,6 +82,7 @@ async function analyze() {
     reportLines.push(getDescriptiveStats(trials));
     reportLines.push(getFrequencyDistribution(trials));
     reportLines.push(getFittsLawAnalysis(trials));
+    reportLines.push(getComparativeTimeAnalysis(trials));
 
     // Write report to file
     const reportContent = reportLines.join('\n');
@@ -197,6 +198,64 @@ function getFittsLawAnalysis(trials) {
         lines.push(`| ${id}                        | ${movesArray.length}      | ${avgMoves.toFixed(2)}      |`);
     }
     
+    return lines.join('\n');
+}
+
+/**
+ * Generates a markdown table for the comparative time analysis.
+ * @param {Array<object>} trials - The parsed trial data.
+ * @returns {string} The formatted markdown section.
+ */
+function getComparativeTimeAnalysis(trials) {
+    // --- Modeling Constants (in milliseconds) ---
+    const KEYSTROKE_TIME_MS = 500; // Time per keyboard zoom action
+    const HOMING_TIME_MS = 400;    // Time to move hand from keyboard to mouse
+    const FITTS_A_MS = 50;         // Fitts's Law intercept (e.g., clicking time)
+    const FITTS_B_FAST_MS = 100;   // Fitts's Law slope for a fast mouse user
+    const FITTS_B_MEDIUM_MS = 150; // Fitts's Law slope for a medium mouse user
+    const FITTS_B_SLOW_MS = 200;   // Fitts's Law slope for a slow mouse user
+
+    let totalKeyboardTime = 0;
+    let totalMouseFastTime = 0;
+    let totalMouseMediumTime = 0;
+    let totalMouseSlowTime = 0;
+
+    for (const trial of trials) {
+        const id = Math.log2(trial.initial_distance / trial.target_width + 1);
+
+        // Keyboard time calculation
+        totalKeyboardTime += trial.moves * KEYSTROKE_TIME_MS;
+
+        // Mouse time calculation
+        const pointingTimeFast = FITTS_A_MS + FITTS_B_FAST_MS * id;
+        const pointingTimeMedium = FITTS_A_MS + FITTS_B_MEDIUM_MS * id;
+        const pointingTimeSlow = FITTS_A_MS + FITTS_B_SLOW_MS * id;
+
+        totalMouseFastTime += HOMING_TIME_MS + pointingTimeFast;
+        totalMouseMediumTime += HOMING_TIME_MS + pointingTimeMedium;
+        totalMouseSlowTime += HOMING_TIME_MS + pointingTimeSlow;
+    }
+
+    const n = trials.length;
+    const avgKeyboardTime = totalKeyboardTime / n;
+    const avgMouseFastTime = totalMouseFastTime / n;
+    const avgMouseMediumTime = totalMouseMediumTime / n;
+    const avgMouseSlowTime = totalMouseSlowTime / n;
+
+    const lines = [
+        '\n## Comparative Time Analysis (Estimated)',
+        'This analysis estimates the time required to complete a trial using the keyboard method versus a traditional mouse.',
+        '- **Keyboard Time** = `Moves * 500ms`',
+        '- **Mouse Time** = `Homing Time (400ms) + Fitts\'s Law Time`',
+        '',
+        '| Method                  | Avg. Time (ms) |',
+        '|-------------------------|----------------|',
+        `| Keyboard Navigation     | ${avgKeyboardTime.toFixed(0)}           |`,
+        `| Mouse (Fast User)       | ${avgMouseFastTime.toFixed(0)}           |`,
+        `| Mouse (Medium User)     | ${avgMouseMediumTime.toFixed(0)}           |`,
+        `| Mouse (Slow User)       | ${avgMouseSlowTime.toFixed(0)}           |`,
+    ];
+
     return lines.join('\n');
 }
 
