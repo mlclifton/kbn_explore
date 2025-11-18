@@ -8,7 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import getPort from 'get-port';
 
-const ROOT_DIR = process.cwd();
+const ROOT_DIR = path.join(process.cwd(), 'src');
 
 // --- Test Runner ---
 async function runTestSuite(tests) {

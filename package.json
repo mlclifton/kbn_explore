@@ -7,9 +7,9 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "node js/tests/simulation.test.js",
-    "trials": "node js/automated_trials.js",
-    "analysis": "npm run trials > trials.csv && node js/analysis.js < trials.csv"
+    "test": "node src/js/tests/simulation.test.js",
+    "trials": "node src/js/automated_trials.js",
+    "analysis": "npm run trials > trials.csv && node src/js/analysis.js < trials.csv"
   },
   "keywords": [],
   "author": "",

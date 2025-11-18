@@ -11,7 +11,7 @@ export const KEY_MAPPING = [
     ['z', 'x', 'c', 'v', 'n', 'm', ',', '.'],
 ];
 
-export const TARGET_IMAGE_SRC = 'img/background_image.jpg';
+export const TARGET_IMAGE_SRC = '/img/background_image.jpg';
 
 // New constants for randomizing target size
 export const TARGET_SIZE_RATIO_MIN = 0.01; // 1% of screen width

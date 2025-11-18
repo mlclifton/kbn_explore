@@ -16,3 +16,9 @@ All in all, there's probably 3 hours of hacking / vibing on the solution and the
 My main take away from this was that the relative speed with which I was able to explore the solution, using Gemini in this case, makes validating ideas with simple proofs-of-concept much easier than if I'd had to build them by hand - as someone who doesn't build regularly (and that's being very generous) this is even more true.
 
 The Gemini generated README is in `README_generated.md` - that'll tell you more about the repo and how to get the simulation going.
+
+---
+
+### Development Server Note
+
+To run the application locally, you must configure your web server to use the `src/` directory as the document root.
